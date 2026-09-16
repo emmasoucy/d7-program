@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>d7-program</title>
+  <style>
+    :root { color-scheme: dark; --black:#000; --panel:#080808; --line:#2b2b2b; --text:#e7e7e7; --muted:#858585; --accent:#cfcfcf; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--black); color:var(--text); font-family:Arial, Helvetica, sans-serif; }
+    .app { min-height:100vh; display:grid; grid-template-columns:300px 1fr; }
+    .controls { padding:28px 24px; border-right:1px solid var(--line); background:var(--panel); }
+    h1 { margin:0 0 8px; font-weight:400; font-size:16px; letter-spacing:.16em; text-transform:uppercase; }
+    .intro { margin:0; color:var(--muted); font-size:12px; line-height:1.55; }
+    .settings { margin-top:34px; border-top:1px solid var(--line); }
+    .setting { padding:18px 0; border-bottom:1px solid var(--line); }
+    .label { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+    output { color:var(--muted); font-size:11px; letter-spacing:0; }
+    input[type="range"] { width:100%; margin:0; accent-color:var(--accent); cursor:pointer; }
+    .explain { margin:8px 0 0; color:#696969; font-size:11px; line-height:1.35; }
+    button { width:100%; margin-top:22px; padding:12px; background:#e4e4e4; color:#050505; border:0; border-radius:0; font-size:11px; font-weight:bold; letter-spacing:.13em; text-transform:uppercase; cursor:pointer; }
+    button:hover { background:#fff; }
+    .hint { margin:14px 0 0; color:#606060; font-size:10px; line-height:1.45; }
+    .summary { margin-top:16px; padding:12px; border:1px solid var(--line); color:#999; font-size:10px; line-height:1.55; }
+    .summary strong { color:#ddd; font-weight:normal; }
+    select { width:100%; margin:0 0 11px; padding:8px 9px; border:1px solid #3b3b3b; border-radius:0; color:#e4e4e4; background:#111; font-size:11px; }
+    .saved { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
+    .saved h2 { margin:0 0 10px; color:#888; font-size:10px; font-weight:normal; letter-spacing:.12em; text-transform:uppercase; }
+    .save-button { margin-top:18px; background:#161616; color:#e4e4e4; border:1px solid #4a4a4a; }
+    .save-button:hover { background:#292929; }
+    .saved-item { display:flex; width:100%; margin:5px 0; padding:8px 9px; border:1px solid #333; background:#0d0d0d; color:#bdbdbd; cursor:pointer; font-size:10px; text-align:left; }
+    .saved-item:hover, .saved-item.active { border-color:#aaa; color:#fff; }
+    .saved-item span { margin-left:auto; color:#777; }
+    .matrix-button { margin-top:8px; background:#101010; color:#e4e4e4; border:1px solid #4a4a4a; }
+    .matrix-button:hover { background:#292929; }
+    .stage { min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; }
+    .meta { width:min(100%, 960px); display:flex; justify-content:space-between; margin-bottom:13px; color:#777; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+    .canvas-wrap { position:relative; width:min(100%, 960px); aspect-ratio:1.35; background:#000; border:1px solid #1d1d1d; }
+    canvas { display:block; width:100%; height:100%; }
+    .matrix-view { width:min(100%, 960px); }
+    .matrix-view[hidden] { display:none; }
+    .matrix-title { margin:0 0 12px; color:#999; font-size:11px; line-height:1.4; }
+    .matrix { display:grid; grid-template-columns:42px repeat(5, 1fr); gap:5px; align-items:stretch; }
+    .matrix-label { display:flex; align-items:center; justify-content:center; color:#777; font-size:9px; letter-spacing:.05em; text-align:center; }
+    .matrix-label.top { color:#bbb; }
+    .matrix-cell { min-width:0; aspect-ratio:1.35; border:1px solid #242424; background:#000; }
+    .matrix-cell canvas { width:100%; height:100%; }
+    @media (max-width:740px) { .app { grid-template-columns:1fr; } .controls { border-right:0; border-bottom:1px solid var(--line); } .stage { padding:20px; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="controls">
+      <h1>Section / Space</h1>
+      <p class="intro">One continuous sectional composition, assembled from sharp-edged rectangular inputs.</p>
+      <div class="settings">
+        <div class="setting">
+          <div class="label"><span>Scale</span><output id="scaleOut"></output></div>
+          <select id="scaleAxis" aria-label="Scale direction"><option value="tall">Height / tall</option><option value="wide">Width / wide</option></select>
+          <input id="scale" type="range" min="50" max="220" value="120">
+          <p class="explain">Scales only the selected dimension; the other dimension stays at its generated base size.</p>
+        </div>
+        <div class="setting">
+          <div class="label"><span>Density / complexity</span><output id="densityOut"></output></div>
+          <input id="density" type="range" min="2" max="16" value="7">
+          <p class="explain">Sets the exact number of rectangular forms in one variation.</p>
+        </div>
+        <div class="setting">
+          <div class="label"><span>Overlap</span><output id="overlapOut"></output></div>
+          <input id="overlap" type="range" min="5" max="90" value="35">
+          <p class="explain">Sets pre-rotation contact depth as a percentage of the smaller rectangle, measured on its joining axis.</p>
+        </div>
+        <div class="setting">
+          <div class="label"><span>Rotate</span><output id="rotateOut"></output></div>
+          <input id="rotate" type="range" min="0" max="45" value="8">
+          <p class="explain">Sets the maximum rotation. Each non-root rectangle gets a deterministic angle from −value° to +value°.</p>
+        </div>
+        <div class="setting">
+          <div class="label"><span>Outline overlap depth</span><output id="outlineOut"></output></div>
+          <input id="outlineDepth" type="range" min="1" max="16" value="2">
+          <p class="explain">Shows only outline segments where exactly this many shapes overlap. One shape is the 10% grey field; higher counts are darker.</p>
+        </div>
+        <div class="setting">
+          <div class="label"><span>Matrix criteria</span><output>axes</output></div>
+          <select id="matrixX" aria-label="Matrix horizontal criterion">
+            <option value="scale">Top / horizontal — Scale</option>
+            <option value="rotate">Top / horizontal — Rotation</option>
+            <option value="density">Top / horizontal — Density</option>
+            <option value="overlap">Top / horizontal — Overlap</option>
+            <option value="outlineDepth">Top / horizontal — Outline overlap depth</option>
+          </select>
+          <select id="matrixY" aria-label="Matrix vertical criterion">
+            <option value="rotate">Left / vertical — Rotation</option>
+            <option value="scale">Left / vertical — Scale</option>
+            <option value="density">Left / vertical — Density</option>
+            <option value="overlap">Left / vertical — Overlap</option>
+            <option value="outlineDepth">Left / vertical — Outline overlap depth</option>
+          </select>
+          <p class="explain">Choose any two criteria for the matrix axes. All other parameters stay fixed across the grid.</p>
+        </div>
+      </div>
+      <button id="regenerate">Generate variation</button>
+      <button class="matrix-button" id="matrixButton">Show 5 × 5 scale / rotation matrix</button>
+      <button class="save-button" id="saveVariation">Save current variation</button>
+      <div class="summary" id="summary"></div>
+      <p class="hint">Every variation remains one connected diagram. Each rectangle is 10% grey; intersecting zones become progressively darker.</p>
+      <div class="saved" id="savedVariations"><h2>Saved variations</h2></div>
+    </aside>
+    <section class="stage">
+      <div id="singleView">
+        <div class="meta"><span>Spatial variation / section</span><span id="count"></span></div>
+        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+      </div>
+      <div class="matrix-view" id="matrixView" hidden>
+        <p class="matrix-title" id="matrixTitle">Same variation across a controlled parameter matrix.</p>
+        <div class="matrix" id="matrix"></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const canvas = document.querySelector('#canvas');
+    const controls = ['scaleAxis','scale','density','overlap','rotate','outlineDepth'].map(id => document.getElementById(id));
+    let variation = 1;
+    let selectedSavedId = null;
+    const STORAGE_KEY = 'section-space-saved-variations-v1';
+
+    function seededRandom(seed) {
+      return function () {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function read() {
+      return Object.fromEntries(controls.map(c => [c.id, c.id === 'scaleAxis' ? c.value : +c.value]));
+    }
+    function savedVariations() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
+    function saveCurrentVariation() {
+      const saved = savedVariations();
+      const entry = { id: Date.now(), variation, settings: read() };
+      saved.push(entry); localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      selectedSavedId = entry.id; renderSavedVariations();
+    }
+    function loadSavedVariation(entry) {
+      const settings = entry.settings;
+      controls.forEach(control => { control.value = settings[control.id]; });
+      document.getElementById('outlineDepth').value = settings.outlineDepth || (settings.outlineMode === 'one' ? 1 : settings.outlineMode === 'three' ? 3 : 2);
+      variation = entry.variation; selectedSavedId = entry.id; draw(); renderSavedVariations();
+    }
+    function renderSavedVariations() {
+      const container = document.getElementById('savedVariations');
+      container.innerHTML = '<h2>Saved variations</h2>';
+      const saved = savedVariations();
+      if (!saved.length) { container.innerHTML += '<div class="hint">No saved variations yet.</div>'; return; }
+      saved.forEach((entry, index) => {
+        const button = document.createElement('button'); button.className = 'saved-item' + (entry.id === selectedSavedId ? ' active' : '');
+        button.innerHTML = 'Variation ' + (index + 1) + '<span>' + entry.settings.density + ' forms</span>';
+        button.addEventListener('click', () => loadSavedVariation(entry)); container.appendChild(button);
+      });
+    }
+    function updateLabels(values) {
+      document.getElementById('scaleOut').textContent = values.scale + '% ' + (values.scaleAxis === 'tall' ? 'height' : 'width');
+      document.getElementById('densityOut').textContent = values.density + ' forms';
+      document.getElementById('overlapOut').textContent = values.overlap + '%';
+      document.getElementById('rotateOut').textContent = '±' + values.rotate + '°';
+      document.getElementById('outlineOut').textContent = values.outlineDepth + (values.outlineDepth === 1 ? ' shape' : ' shapes');
+      document.getElementById('count').textContent = values.density + ' rectangles';
+      document.getElementById('summary').innerHTML =
+        '<strong>Exact generation rule</strong><br>' +
+        values.density + ' forms · ' + values.scale + '% ' + (values.scaleAxis === 'tall' ? 'height' : 'width') +
+        ' · ' + values.overlap + '% pre-rotation joining-axis contact · rotations from −' + values.rotate + '° to +' + values.rotate + '° · outline at exactly ' + values.outlineDepth + ' overlapping shapes.';
+    }
+    function createForms(values) {
+      const random = seededRandom(variation * 7919 + values.overlap * 17 + values.density * 13);
+      const forms = [];
+      for (let i = 0; i < values.density; i++) {
+        const angle = i === 0 ? 0 : (random() * 2 - 1) * values.rotate * Math.PI / 180;
+        const baseW = 130 + random() * 150, baseH = 105 + random() * 125;
+        const w = values.scaleAxis === 'wide' ? baseW * values.scale / 100 : baseW;
+        const h = values.scaleAxis === 'tall' ? baseH * values.scale / 100 : baseH;
+        let x = 480, y = 315;
+        if (i) {
+          const parent = forms[Math.floor(random() * forms.length)];
+          const side = Math.floor(random() * 4);
+          const joiningLength = side < 2 ? Math.min(parent.h, h) : Math.min(parent.w, w);
+          const overlap = joiningLength * values.overlap / 100;
+          const crossLength = side < 2 ? Math.min(parent.w, w) : Math.min(parent.h, h);
+          const drift = Math.max(0, (parent.w + w) / 2 - crossLength * .24);
+          if (side === 0 || side === 1) {
+            x = parent.x + (random() * 2 - 1) * drift;
+            y = parent.y + (side === 0 ? -(parent.h + h) / 2 + overlap : (parent.h + h) / 2 - overlap);
+          } else {
+            x = parent.x + (side === 2 ? -(parent.w + w) / 2 + overlap : (parent.w + w) / 2 - overlap);
+            y = parent.y + (random() * 2 - 1) * Math.max(0, (parent.h + h) / 2 - crossLength * .24);
+          }
+        }
+        forms.push({ x, y, w, h, angle });
+      }
+      return fitFormsToFrame(forms);
+    }
+    function fitFormsToFrame(forms) {
+      const frame = { left:32, top:32, right:928, bottom:678 };
+      function bounds() {
+        let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+        for (const form of forms) {
+          const c = Math.abs(Math.cos(form.angle)), s = Math.abs(Math.sin(form.angle));
+          const halfX = c * form.w / 2 + s * form.h / 2;
+          const halfY = s * form.w / 2 + c * form.h / 2;
+          left = Math.min(left, form.x - halfX); right = Math.max(right, form.x + halfX);
+          top = Math.min(top, form.y - halfY); bottom = Math.max(bottom, form.y + halfY);
+        }
+        return { left, top, right, bottom, width:right-left, height:bottom-top };
+      }
+      let box = bounds();
+      const fit = Math.min(1, (frame.right - frame.left) / box.width, (frame.bottom - frame.top) / box.height);
+      if (fit < 1) {
+        const cx = (box.left + box.right) / 2, cy = (box.top + box.bottom) / 2;
+        for (const form of forms) {
+          form.x = cx + (form.x - cx) * fit; form.y = cy + (form.y - cy) * fit;
+          form.w *= fit; form.h *= fit;
+        }
+        box = bounds();
+      }
+      const dx = (frame.left + frame.right - box.left - box.right) / 2;
+      const dy = (frame.top + frame.bottom - box.top - box.bottom) / 2;
+      for (const form of forms) { form.x += dx; form.y += dy; }
+      return forms;
+    }
+    function insideRotatedRectangle(px, py, rect) {
+      const c = Math.cos(-rect.angle), s = Math.sin(-rect.angle);
+      const x = (px - rect.x) * c - (py - rect.y) * s, y = (px - rect.x) * s + (py - rect.y) * c;
+      return Math.abs(x) <= rect.w / 2 && Math.abs(y) <= rect.h / 2;
+    }
+    function draw(targetCanvas = canvas, suppliedValues = null, suppliedForms = null) {
+      const values = suppliedValues ? { ...suppliedValues } : read();
+      if (!suppliedValues) {
+        const depthControl = document.getElementById('outlineDepth');
+        depthControl.max = values.density;
+        if (values.outlineDepth > values.density) { values.outlineDepth = values.density; depthControl.value = values.density; }
+        updateLabels(values);
+      }
+      const width = 960, height = 710;
+      const ctx = targetCanvas.getContext('2d');
+      targetCanvas.width = width; targetCanvas.height = height; ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height);
+      const forms = suppliedForms || createForms(values), image = ctx.createImageData(width, height);
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+        let layers = 0; for (const form of forms) if (insideRotatedRectangle(x + .5, y + .5, form)) layers++;
+        if (!layers) continue;
+        const shade = Math.max(4, 26 - (layers - 1) * 7), index = (y * width + x) * 4;
+        image.data[index] = image.data[index + 1] = image.data[index + 2] = shade; image.data[index + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+      function pointOnForm(form, localX, localY) {
+        const c = Math.cos(form.angle), s = Math.sin(form.angle);
+        return [form.x + localX * c - localY * s, form.y + localX * s + localY * c];
+      }
+      function cross(a, b) { return a[0] * b[1] - a[1] * b[0]; }
+      function intersectionParameter(a, b, c, d) {
+        const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], q = [c[0] - a[0], c[1] - a[1]];
+        const denominator = cross(r, s);
+        if (Math.abs(denominator) < 0.00001) return null;
+        const t = cross(q, s) / denominator, u = cross(q, r) / denominator;
+        return t > 0.00001 && t < .99999 && u > 0.00001 && u < .99999 ? t : null;
+      }
+      const outlineDepth = values.outlineDepth;
+      for (const form of forms) {
+        const corners = [
+          pointOnForm(form, -form.w/2, -form.h/2), pointOnForm(form, form.w/2, -form.h/2),
+          pointOnForm(form, form.w/2, form.h/2), pointOnForm(form, -form.w/2, form.h/2)
+        ];
+        for (let edge = 0; edge < 4; edge++) {
+          const a = corners[edge], b = corners[(edge + 1) % 4];
+          const cuts = [0, 1];
+          for (const other of forms) {
+            if (other === form) continue;
+            const otherCorners = [
+              pointOnForm(other, -other.w/2, -other.h/2), pointOnForm(other, other.w/2, -other.h/2),
+              pointOnForm(other, other.w/2, other.h/2), pointOnForm(other, -other.w/2, other.h/2)
+            ];
+            for (let otherEdge = 0; otherEdge < 4; otherEdge++) {
+              const crossing = intersectionParameter(a, b, otherCorners[otherEdge], otherCorners[(otherEdge + 1) % 4]);
+              if (crossing !== null) cuts.push(crossing);
+            }
+          }
+          cuts.sort((x, y) => x - y);
+          const uniqueCuts = cuts.filter((cut, index) => !index || Math.abs(cut - cuts[index - 1]) > .00001);
+          for (let segment = 0; segment < uniqueCuts.length - 1; segment++) {
+            const t0 = uniqueCuts[segment], t1 = uniqueCuts[segment + 1], mid = (t0 + t1) / 2;
+            const x0 = a[0] + (b[0] - a[0]) * t0, y0 = a[1] + (b[1] - a[1]) * t0;
+            const x1 = a[0] + (b[0] - a[0]) * t1, y1 = a[1] + (b[1] - a[1]) * t1;
+            const mx = a[0] + (b[0] - a[0]) * mid, my = a[1] + (b[1] - a[1]) * mid;
+            let layersAtEdge = 1;
+            for (const other of forms) if (other !== form && insideRotatedRectangle(mx, my, other)) layersAtEdge++;
+            const internal = layersAtEdge > 1;
+            if (outlineDepth && layersAtEdge !== outlineDepth) continue;
+            ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+            ctx.strokeStyle = internal ? 'rgba(142,142,142,.72)' : 'rgba(174,174,174,.88)';
+            ctx.lineWidth = internal ? 1.1 : 1.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+    function renderMatrix() {
+      const matrix = document.getElementById('matrix');
+      matrix.innerHTML = '';
+      const base = read();
+      const xCriterion = document.getElementById('matrixX').value;
+      const yCriterion = document.getElementById('matrixY').value;
+      const axis = {
+        scale: { name:'Scale', values:[50, 93, 135, 178, 220], unit:'%' },
+        rotate: { name:'Rotation', values:[0, 11, 23, 34, 45], unit:'°' },
+        density: { name:'Density', values:[2, 5, 9, 12, 16], unit:' forms' },
+        overlap: { name:'Overlap', values:[5, 26, 48, 69, 90], unit:'%' },
+        outlineDepth: { name:'Outline depth', values:[1, 2, 3, 4, 5], unit:' shapes' }
+      };
+      const xAxis = axis[xCriterion], yAxis = axis[yCriterion];
+      document.getElementById('matrixTitle').textContent =
+        'Controlled comparison: ' + xAxis.name + ' increases left to right; ' + yAxis.name + ' increases top to bottom. All remaining criteria are held constant.';
+      const blank = document.createElement('div'); blank.className = 'matrix-label'; matrix.appendChild(blank);
+      xAxis.values.forEach(value => {
+        const label = document.createElement('div'); label.className = 'matrix-label top';
+        label.textContent = xAxis.name.toUpperCase() + ' ' + value + xAxis.unit; matrix.appendChild(label);
+      });
+      yAxis.values.forEach(yValue => {
+        const label = document.createElement('div'); label.className = 'matrix-label';
+        label.textContent = yAxis.name.toUpperCase() + ' ' + yValue + yAxis.unit; matrix.appendChild(label);
+        xAxis.values.forEach(xValue => {
+          const cell = document.createElement('div'); cell.className = 'matrix-cell';
+          const cellCanvas = document.createElement('canvas'); cell.appendChild(cellCanvas); matrix.appendChild(cell);
+          const cellValues = { ...base, [xCriterion]:xValue, [yCriterion]:yValue };
+          cellValues.outlineDepth = Math.min(cellValues.outlineDepth, cellValues.density);
+          draw(cellCanvas, cellValues);
+        });
+      });
+    }
+    function toggleMatrix() {
+      const single = document.getElementById('singleView'), matrix = document.getElementById('matrixView'), button = document.getElementById('matrixButton');
+      const opening = matrix.hidden;
+      matrix.hidden = !opening; single.hidden = opening;
+      button.textContent = opening ? 'Return to single variation' : 'Show 5 × 5 scale / rotation matrix';
+      if (opening) renderMatrix();
+    }
+    controls.forEach(control => control.addEventListener('input', () => {
+      selectedSavedId = null; draw(); renderSavedVariations();
+      if (!document.getElementById('matrixView').hidden) renderMatrix();
+    }));
+    document.getElementById('regenerate').addEventListener('click', () => {
+      variation++; selectedSavedId = null; draw(); renderSavedVariations();
+      if (!document.getElementById('matrixView').hidden) renderMatrix();
+    });
+    document.getElementById('matrixButton').addEventListener('click', toggleMatrix);
+    ['matrixX','matrixY'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+      const other = document.getElementById(id === 'matrixX' ? 'matrixY' : 'matrixX');
+      const current = document.getElementById(id);
+      if (current.value === other.value) other.value = current.value === 'scale' ? 'rotate' : 'scale';
+      if (!document.getElementById('matrixView').hidden) renderMatrix();
+    }));
+    document.getElementById('saveVariation').addEventListener('click', saveCurrentVariation);
+    draw(); renderSavedVariations();
+  </script>
+</body>
+</html>
