@@ -2,364 +2,1264 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>d7-program</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; --black:#000; --panel:#080808; --line:#2b2b2b; --text:#e7e7e7; --muted:#858585; --accent:#cfcfcf; }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; background:var(--black); color:var(--text); font-family:Arial, Helvetica, sans-serif; }
-    .app { min-height:100vh; display:grid; grid-template-columns:300px 1fr; }
-    .controls { padding:28px 24px; border-right:1px solid var(--line); background:var(--panel); }
-    h1 { margin:0 0 8px; font-weight:400; font-size:16px; letter-spacing:.16em; text-transform:uppercase; }
-    .intro { margin:0; color:var(--muted); font-size:12px; line-height:1.55; }
-    .settings { margin-top:34px; border-top:1px solid var(--line); }
-    .setting { padding:18px 0; border-bottom:1px solid var(--line); }
-    .label { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
-    output { color:var(--muted); font-size:11px; letter-spacing:0; }
-    input[type="range"] { width:100%; margin:0; accent-color:var(--accent); cursor:pointer; }
-    .explain { margin:8px 0 0; color:#696969; font-size:11px; line-height:1.35; }
-    button { width:100%; margin-top:22px; padding:12px; background:#e4e4e4; color:#050505; border:0; border-radius:0; font-size:11px; font-weight:bold; letter-spacing:.13em; text-transform:uppercase; cursor:pointer; }
-    button:hover { background:#fff; }
-    .hint { margin:14px 0 0; color:#606060; font-size:10px; line-height:1.45; }
-    .summary { margin-top:16px; padding:12px; border:1px solid var(--line); color:#999; font-size:10px; line-height:1.55; }
-    .summary strong { color:#ddd; font-weight:normal; }
-    select { width:100%; margin:0 0 11px; padding:8px 9px; border:1px solid #3b3b3b; border-radius:0; color:#e4e4e4; background:#111; font-size:11px; }
-    .saved { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
-    .saved h2 { margin:0 0 10px; color:#888; font-size:10px; font-weight:normal; letter-spacing:.12em; text-transform:uppercase; }
-    .save-button { margin-top:18px; background:#161616; color:#e4e4e4; border:1px solid #4a4a4a; }
-    .save-button:hover { background:#292929; }
-    .saved-item { display:flex; width:100%; margin:5px 0; padding:8px 9px; border:1px solid #333; background:#0d0d0d; color:#bdbdbd; cursor:pointer; font-size:10px; text-align:left; }
-    .saved-item:hover, .saved-item.active { border-color:#aaa; color:#fff; }
-    .saved-item span { margin-left:auto; color:#777; }
-    .matrix-button { margin-top:8px; background:#101010; color:#e4e4e4; border:1px solid #4a4a4a; }
-    .matrix-button:hover { background:#292929; }
-    .stage { min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px; }
-    .meta { width:min(100%, 960px); display:flex; justify-content:space-between; margin-bottom:13px; color:#777; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
-    .canvas-wrap { position:relative; width:min(100%, 960px); aspect-ratio:1.35; background:#000; border:1px solid #1d1d1d; }
-    canvas { display:block; width:100%; height:100%; }
-    .matrix-view { width:min(100%, 960px); }
-    .matrix-view[hidden] { display:none; }
-    .matrix-title { margin:0 0 12px; color:#999; font-size:11px; line-height:1.4; }
-    .matrix { display:grid; grid-template-columns:42px repeat(5, 1fr); gap:5px; align-items:stretch; }
-    .matrix-label { display:flex; align-items:center; justify-content:center; color:#777; font-size:9px; letter-spacing:.05em; text-align:center; }
-    .matrix-label.top { color:#bbb; }
-    .matrix-cell { min-width:0; aspect-ratio:1.35; border:1px solid #242424; background:#000; }
-    .matrix-cell canvas { width:100%; height:100%; }
-    @media (max-width:740px) { .app { grid-template-columns:1fr; } .controls { border-right:0; border-bottom:1px solid var(--line); } .stage { padding:20px; } }
+    :root {
+      color-scheme: dark;
+      --bg: #08080a;
+      --panel: #0f1013;
+      --panel-border: #1e2026;
+      --accent: #e2e8f0;
+      --accent-hover: #ffffff;
+      --text: #f1f5f9;
+      --text-muted: #8e95a5;
+      --text-dim: #5a6170;
+      --line: #262933;
+      --btn-bg: #181920;
+      --btn-hover: #22242e;
+      --btn-primary-bg: #e2e8f0;
+      --btn-primary-text: #090a0f;
+      --highlight: #38bdf8;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-heading: 'Space Grotesk', var(--font-sans);
+      --font-mono: 'Space Mono', ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar controls */
+    .controls {
+      background: var(--panel);
+      border-right: 1px solid var(--panel-border);
+      padding: 24px 20px 40px;
+      overflow-y: auto;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand {
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 400;
+      background: var(--line);
+      color: var(--text-muted);
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .brand-desc {
+      color: var(--text-muted);
+      font-size: 11.5px;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .setting-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      transition: border-color 0.15s ease;
+    }
+    .setting-card:hover {
+      border-color: #2e3342;
+    }
+
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .setting-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .setting-val {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--highlight);
+      font-weight: 700;
+    }
+
+    .toggle-pill {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--panel-border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .toggle-pill button {
+      background: var(--btn-bg);
+      border: 0;
+      color: var(--text-muted);
+      padding: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-sans);
+    }
+    .toggle-pill button.active {
+      background: #252834;
+      color: #fff;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--line);
+      border-radius: 2px;
+      outline: none;
+      accent-color: var(--highlight);
+      cursor: pointer;
+    }
+
+    .setting-hint {
+      color: var(--text-dim);
+      font-size: 10.5px;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    select {
+      width: 100%;
+      background: var(--btn-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      padding: 7px 10px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    select:focus { border-color: var(--highlight); }
+
+    /* Action Buttons */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    button.btn {
+      background: var(--btn-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    button.btn:hover {
+      background: var(--btn-hover);
+      border-color: #3b4052;
+      color: #fff;
+    }
+    button.btn-primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      border-color: var(--btn-primary-bg);
+      grid-column: span 2;
+      padding: 11px;
+      font-weight: 700;
+    }
+    button.btn-primary:hover {
+      background: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+    button.btn-accent {
+      border-color: #38bdf844;
+      color: var(--highlight);
+    }
+    button.btn-accent:hover {
+      background: #0284c722;
+      border-color: var(--highlight);
+    }
+
+    /* Summary info box */
+    .summary-box {
+      background: rgba(15, 17, 23, 0.6);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+    .summary-box strong {
+      color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 11px;
+    }
+
+    /* Saved variations list */
+    .saved-wrap {
+      border-top: 1px solid var(--panel-border);
+      padding-top: 16px;
+    }
+    .saved-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .saved-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .saved-item:hover, .saved-item.active {
+      border-color: var(--highlight);
+      color: var(--text);
+      background: rgba(56, 189, 248, 0.05);
+    }
+    .saved-item .del-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    .saved-item .del-btn:hover { color: #ef4444; }
+
+    /* Canvas Stage */
+    .stage {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      position: relative;
+      background: #000000;
+    }
+
+    .stage-header {
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(8, 8, 10, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+    .stage-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--panel-border);
+      color: var(--text);
+    }
+    .stage-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0d0e12 0%, #000000 100%);
+      cursor: grab;
+    }
+    .viewport:active { cursor: grabbing; }
+
+    #mainCanvas {
+      display: block;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      border: 1px solid #1c1d24;
+      background: #000000;
+    }
+
+    /* Matrix View */
+    .matrix-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      z-index: 20;
+      padding: 24px 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .matrix-overlay[hidden] { display: none; }
+
+    .matrix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .matrix-info {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(5, minmax(130px, 1fr));
+      gap: 6px;
+      background: #000000;
+      padding: 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+    }
+    .m-corner {
+      background: var(--panel);
+      border-radius: 3px;
+    }
+    .m-col-header, .m-row-header {
+      background: var(--panel);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-radius: 3px;
+    }
+    .m-cell {
+      background: #030304;
+      border: 1px solid #1a1a22;
+      border-radius: 3px;
+      aspect-ratio: 1.35;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .m-cell:hover {
+      border-color: var(--highlight);
+      transform: scale(1.02);
+      z-index: 2;
+    }
+    .m-cell canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Zoom / pan HUD */
+    .hud {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(15, 16, 19, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 6px;
+      display: flex;
+      gap: 4px;
+      z-index: 5;
+    }
+    .hud button {
+      background: transparent;
+      border: 0;
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .hud button:hover {
+      background: #252834;
+      color: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .controls { max-height: none; border-right: 0; border-bottom: 1px solid var(--panel-border); }
+      .viewport { min-height: 60vh; }
+    }
   </style>
 </head>
 <body>
-  <main class="app">
+  <div class="app">
+    <!-- Controls Sidebar -->
     <aside class="controls">
-      <h1>Section / Space</h1>
-      <p class="intro">One continuous sectional composition, assembled from sharp-edged rectangular inputs.</p>
-      <div class="settings">
-        <div class="setting">
-          <div class="label"><span>Scale</span><output id="scaleOut"></output></div>
-          <select id="scaleAxis" aria-label="Scale direction"><option value="tall">Height / tall</option><option value="wide">Width / wide</option></select>
+      <div class="brand">
+        <div class="brand-title">
+          <span>Section / Space</span>
+          <span class="brand-badge">v2.0</span>
+        </div>
+        <p class="brand-desc">Parametric architectural section generator: overlapping rectilinear spatial fields, contact depth, and vector outline stratification.</p>
+      </div>
+
+      <div class="control-group">
+        <div class="section-title">Geometric Parameters</div>
+
+        <!-- Scale -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Scale Factor</span>
+            <span class="setting-val" id="scaleVal">120%</span>
+          </div>
+          <div class="toggle-pill">
+            <button type="button" id="axisTall" class="active">Height / Tall</button>
+            <button type="button" id="axisWide">Width / Wide</button>
+          </div>
           <input id="scale" type="range" min="50" max="220" value="120">
-          <p class="explain">Scales only the selected dimension; the other dimension stays at its generated base size.</p>
+          <p class="setting-hint">Scales the primary axis while preserving secondary proportion.</p>
         </div>
-        <div class="setting">
-          <div class="label"><span>Density / complexity</span><output id="densityOut"></output></div>
+
+        <!-- Density -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Density / Complexity</span>
+            <span class="setting-val" id="densityVal">7 forms</span>
+          </div>
           <input id="density" type="range" min="2" max="16" value="7">
-          <p class="explain">Sets the exact number of rectangular forms in one variation.</p>
+          <p class="setting-hint">Number of discrete rectangular components in the spatial assembly.</p>
         </div>
-        <div class="setting">
-          <div class="label"><span>Overlap</span><output id="overlapOut"></output></div>
+
+        <!-- Overlap -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Overlap Depth</span>
+            <span class="setting-val" id="overlapVal">35%</span>
+          </div>
           <input id="overlap" type="range" min="5" max="90" value="35">
-          <p class="explain">Sets pre-rotation contact depth as a percentage of the smaller rectangle, measured on its joining axis.</p>
+          <p class="setting-hint">Pre-rotation contact percentage measured along joining axis.</p>
         </div>
-        <div class="setting">
-          <div class="label"><span>Rotate</span><output id="rotateOut"></output></div>
+
+        <!-- Rotation -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Angular Rotation</span>
+            <span class="setting-val" id="rotateVal">±8°</span>
+          </div>
           <input id="rotate" type="range" min="0" max="45" value="8">
-          <p class="explain">Sets the maximum rotation. Each non-root rectangle gets a deterministic angle from −value° to +value°.</p>
+          <p class="setting-hint">Deterministic angular deviation assigned to child volumes.</p>
         </div>
-        <div class="setting">
-          <div class="label"><span>Outline overlap depth</span><output id="outlineOut"></output></div>
+
+        <!-- Outline Depth -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Outline Overlap Count</span>
+            <span class="setting-val" id="outlineVal">2 shapes</span>
+          </div>
           <input id="outlineDepth" type="range" min="1" max="16" value="2">
-          <p class="explain">Shows only outline segments where exactly this many shapes overlap. One shape is the 10% grey field; higher counts are darker.</p>
+          <p class="setting-hint">Filters drawn boundary linework strictly to intersections of N shapes.</p>
         </div>
-        <div class="setting">
-          <div class="label"><span>Matrix criteria</span><output>axes</output></div>
-          <select id="matrixX" aria-label="Matrix horizontal criterion">
-            <option value="scale">Top / horizontal — Scale</option>
-            <option value="rotate">Top / horizontal — Rotation</option>
-            <option value="density">Top / horizontal — Density</option>
-            <option value="overlap">Top / horizontal — Overlap</option>
-            <option value="outlineDepth">Top / horizontal — Outline overlap depth</option>
+
+        <!-- Theme / Mode -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">Display Style</span>
+          </div>
+          <select id="themeSelector">
+            <option value="dark" selected>Architectural Monochrome (Dark)</option>
+            <option value="blueprint">Blueprint / Cyanotype</option>
+            <option value="print">Paper / Light (Print Ready)</option>
           </select>
-          <select id="matrixY" aria-label="Matrix vertical criterion">
-            <option value="rotate">Left / vertical — Rotation</option>
-            <option value="scale">Left / vertical — Scale</option>
-            <option value="density">Left / vertical — Density</option>
-            <option value="overlap">Left / vertical — Overlap</option>
-            <option value="outlineDepth">Left / vertical — Outline overlap depth</option>
+        </div>
+
+        <!-- Matrix Axes -->
+        <div class="setting-card">
+          <div class="setting-header">
+            <span class="setting-label">5 × 5 Matrix Axes</span>
+          </div>
+          <select id="matrixX" style="margin-bottom: 6px;">
+            <option value="scale" selected>Horizontal (X): Scale</option>
+            <option value="rotate">Horizontal (X): Rotation</option>
+            <option value="density">Horizontal (X): Density</option>
+            <option value="overlap">Horizontal (X): Overlap</option>
+            <option value="outlineDepth">Horizontal (X): Outline Depth</option>
           </select>
-          <p class="explain">Choose any two criteria for the matrix axes. All other parameters stay fixed across the grid.</p>
+          <select id="matrixY">
+            <option value="rotate" selected>Vertical (Y): Rotation</option>
+            <option value="scale">Vertical (Y): Scale</option>
+            <option value="density">Vertical (Y): Density</option>
+            <option value="overlap">Vertical (Y): Overlap</option>
+            <option value="outlineDepth">Vertical (Y): Outline Depth</option>
+          </select>
         </div>
       </div>
-      <button id="regenerate">Generate variation</button>
-      <button class="matrix-button" id="matrixButton">Show 5 × 5 scale / rotation matrix</button>
-      <button class="save-button" id="saveVariation">Save current variation</button>
-      <div class="summary" id="summary"></div>
-      <p class="hint">Every variation remains one connected diagram. Each rectangle is 10% grey; intersecting zones become progressively darker.</p>
-      <div class="saved" id="savedVariations"><h2>Saved variations</h2></div>
+
+      <!-- Action Buttons -->
+      <div class="action-grid">
+        <button type="button" class="btn btn-primary" id="btnRegenerate">
+          🎲 Generate Variation
+        </button>
+        <button type="button" class="btn btn-accent" id="btnMatrix">
+          ▦ 5 × 5 Matrix
+        </button>
+        <button type="button" class="btn" id="btnSave">
+          💾 Save Variation
+        </button>
+        <button type="button" class="btn" id="btnExportSVG">
+          📐 Export SVG
+        </button>
+        <button type="button" class="btn" id="btnExportDXF">
+          ✏️ Export DXF
+        </button>
+        <button type="button" class="btn" id="btnExportPNG" style="grid-column: span 2;">
+          🖼️ Export High-Res PNG
+        </button>
+      </div>
+
+      <!-- Technical Summary -->
+      <div class="summary-box" id="summaryText"></div>
+
+      <!-- Saved Variations -->
+      <div class="saved-wrap">
+        <div class="section-title">Saved Variations</div>
+        <ul class="saved-list" id="savedList"></ul>
+      </div>
     </aside>
-    <section class="stage">
-      <div id="singleView">
-        <div class="meta"><span>Spatial variation / section</span><span id="count"></span></div>
-        <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+
+    <!-- Stage / Viewport -->
+    <main class="stage">
+      <header class="stage-header">
+        <div class="stage-stats">
+          <span class="stat-badge" id="badgeForms">7 Rectangles</span>
+          <span class="stat-badge" id="badgeSeed">Seed: 00000000</span>
+          <span id="coordInfo">960 × 710 Coordinate System</span>
+        </div>
+        <div class="stage-tools">
+          <button type="button" class="btn" id="btnResetView" title="Reset Pan & Zoom" style="padding: 6px 10px; font-size: 10px;">
+            ⟲ Reset Zoom
+          </button>
+        </div>
+      </header>
+
+      <div class="viewport" id="viewport">
+        <canvas id="mainCanvas" width="960" height="710"></canvas>
+
+        <div class="hud">
+          <button type="button" id="zoomIn" title="Zoom In">+</button>
+          <button type="button" id="zoomOut" title="Zoom Out">−</button>
+          <button type="button" id="zoomFit" title="Fit to View">⊡</button>
+        </div>
       </div>
-      <div class="matrix-view" id="matrixView" hidden>
-        <p class="matrix-title" id="matrixTitle">Same variation across a controlled parameter matrix.</p>
-        <div class="matrix" id="matrix"></div>
+
+      <!-- Matrix Overlay -->
+      <div class="matrix-overlay" id="matrixView" hidden>
+        <div class="matrix-header">
+          <div>
+            <div class="brand-title">Controlled 5 × 5 Comparison Matrix</div>
+            <p class="matrix-info" id="matrixDesc">Horizontal axis: Scale · Vertical axis: Rotation · Other criteria held constant.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnCloseMatrix" style="width: auto; padding: 8px 16px;">
+            ✕ Back to Variation
+          </button>
+        </div>
+        <div class="matrix-grid" id="matrixGrid"></div>
       </div>
-    </section>
-  </main>
+    </main>
+  </div>
+
   <script>
-    const canvas = document.querySelector('#canvas');
-    const controls = ['scaleAxis','scale','density','overlap','rotate','outlineDepth'].map(id => document.getElementById(id));
+  (function () {
+    const STORAGE_KEY = 'section-space-saved-variations-v2';
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const viewport = document.getElementById('viewport');
+
+    // Pan / Zoom State
+    let zoom = 1;
+    let panX = 0, panY = 0;
+    let isPanning = false, startPanX = 0, startPanY = 0;
+
     let variation = 1;
+    let scaleAxis = 'tall';
     let selectedSavedId = null;
-    const STORAGE_KEY = 'section-space-saved-variations-v1';
+
+    const CRITERIA = {
+      scale: { name: 'Scale', values: [50, 93, 135, 178, 220], unit: '%' },
+      rotate: { name: 'Rotation', values: [0, 11, 23, 34, 45], unit: '°' },
+      density: { name: 'Density', values: [2, 5, 9, 12, 16], unit: ' forms' },
+      overlap: { name: 'Overlap', values: [5, 26, 48, 69, 90], unit: '%' },
+      outlineDepth: { name: 'Outline Depth', values: [1, 2, 3, 4, 5], unit: ' shapes' }
+    };
+
+    const THEMES = {
+      dark: {
+        bg: '#000000',
+        fillBase: 26,
+        fillStep: 7,
+        lineInternal: 'rgba(142, 142, 142, 0.72)',
+        lineExternal: 'rgba(230, 230, 230, 0.95)',
+        lineWidthInternal: 1.1,
+        lineWidthExternal: 1.6
+      },
+      blueprint: {
+        bg: '#0a192f',
+        fillBase: 40,
+        fillStep: 9,
+        lineInternal: 'rgba(56, 189, 248, 0.65)',
+        lineExternal: 'rgba(224, 242, 254, 0.98)',
+        lineWidthInternal: 1.2,
+        lineWidthExternal: 1.8
+      },
+      print: {
+        bg: '#f8fafc',
+        fillBase: 240,
+        fillStep: 28,
+        lineInternal: 'rgba(100, 116, 139, 0.8)',
+        lineExternal: 'rgba(15, 23, 42, 0.98)',
+        lineWidthInternal: 1.2,
+        lineWidthExternal: 1.8
+      }
+    };
 
     function seededRandom(seed) {
       return function () {
-        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        seed |= 0;
+        seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       };
     }
-    function read() {
-      return Object.fromEntries(controls.map(c => [c.id, c.id === 'scaleAxis' ? c.value : +c.value]));
+
+    function getParams() {
+      return {
+        scale: +document.getElementById('scale').value,
+        scaleAxis: scaleAxis,
+        density: +document.getElementById('density').value,
+        overlap: +document.getElementById('overlap').value,
+        rotate: +document.getElementById('rotate').value,
+        outlineDepth: +document.getElementById('outlineDepth').value,
+        theme: document.getElementById('themeSelector').value
+      };
     }
-    function savedVariations() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
-    function saveCurrentVariation() {
-      const saved = savedVariations();
-      const entry = { id: Date.now(), variation, settings: read() };
-      saved.push(entry); localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-      selectedSavedId = entry.id; renderSavedVariations();
-    }
-    function loadSavedVariation(entry) {
-      const settings = entry.settings;
-      controls.forEach(control => { control.value = settings[control.id]; });
-      document.getElementById('outlineDepth').value = settings.outlineDepth || (settings.outlineMode === 'one' ? 1 : settings.outlineMode === 'three' ? 3 : 2);
-      variation = entry.variation; selectedSavedId = entry.id; draw(); renderSavedVariations();
-    }
-    function renderSavedVariations() {
-      const container = document.getElementById('savedVariations');
-      container.innerHTML = '<h2>Saved variations</h2>';
-      const saved = savedVariations();
-      if (!saved.length) { container.innerHTML += '<div class="hint">No saved variations yet.</div>'; return; }
-      saved.forEach((entry, index) => {
-        const button = document.createElement('button'); button.className = 'saved-item' + (entry.id === selectedSavedId ? ' active' : '');
-        button.innerHTML = 'Variation ' + (index + 1) + '<span>' + entry.settings.density + ' forms</span>';
-        button.addEventListener('click', () => loadSavedVariation(entry)); container.appendChild(button);
-      });
-    }
-    function updateLabels(values) {
-      document.getElementById('scaleOut').textContent = values.scale + '% ' + (values.scaleAxis === 'tall' ? 'height' : 'width');
-      document.getElementById('densityOut').textContent = values.density + ' forms';
-      document.getElementById('overlapOut').textContent = values.overlap + '%';
-      document.getElementById('rotateOut').textContent = '±' + values.rotate + '°';
-      document.getElementById('outlineOut').textContent = values.outlineDepth + (values.outlineDepth === 1 ? ' shape' : ' shapes');
-      document.getElementById('count').textContent = values.density + ' rectangles';
-      document.getElementById('summary').innerHTML =
-        '<strong>Exact generation rule</strong><br>' +
-        values.density + ' forms · ' + values.scale + '% ' + (values.scaleAxis === 'tall' ? 'height' : 'width') +
-        ' · ' + values.overlap + '% pre-rotation joining-axis contact · rotations from −' + values.rotate + '° to +' + values.rotate + '° · outline at exactly ' + values.outlineDepth + ' overlapping shapes.';
-    }
-    function createForms(values) {
-      const random = seededRandom(variation * 7919 + values.overlap * 17 + values.density * 13);
+
+    function createForms(values, varSeed) {
+      const vSeed = varSeed !== undefined ? varSeed : variation;
+      const random = seededRandom(vSeed * 7919 + values.overlap * 17 + values.density * 13);
       const forms = [];
+
       for (let i = 0; i < values.density; i++) {
         const angle = i === 0 ? 0 : (random() * 2 - 1) * values.rotate * Math.PI / 180;
-        const baseW = 130 + random() * 150, baseH = 105 + random() * 125;
+        const baseW = 130 + random() * 150;
+        const baseH = 105 + random() * 125;
         const w = values.scaleAxis === 'wide' ? baseW * values.scale / 100 : baseW;
         const h = values.scaleAxis === 'tall' ? baseH * values.scale / 100 : baseH;
         let x = 480, y = 315;
-        if (i) {
+
+        if (i > 0) {
           const parent = forms[Math.floor(random() * forms.length)];
           const side = Math.floor(random() * 4);
           const joiningLength = side < 2 ? Math.min(parent.h, h) : Math.min(parent.w, w);
           const overlap = joiningLength * values.overlap / 100;
           const crossLength = side < 2 ? Math.min(parent.w, w) : Math.min(parent.h, h);
-          const drift = Math.max(0, (parent.w + w) / 2 - crossLength * .24);
+          const drift = Math.max(0, (parent.w + w) / 2 - crossLength * 0.24);
+
           if (side === 0 || side === 1) {
             x = parent.x + (random() * 2 - 1) * drift;
             y = parent.y + (side === 0 ? -(parent.h + h) / 2 + overlap : (parent.h + h) / 2 - overlap);
           } else {
             x = parent.x + (side === 2 ? -(parent.w + w) / 2 + overlap : (parent.w + w) / 2 - overlap);
-            y = parent.y + (random() * 2 - 1) * Math.max(0, (parent.h + h) / 2 - crossLength * .24);
+            y = parent.y + (random() * 2 - 1) * Math.max(0, (parent.h + h) / 2 - crossLength * 0.24);
           }
         }
         forms.push({ x, y, w, h, angle });
       }
       return fitFormsToFrame(forms);
     }
+
     function fitFormsToFrame(forms) {
-      const frame = { left:32, top:32, right:928, bottom:678 };
-      function bounds() {
-        let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-        for (const form of forms) {
-          const c = Math.abs(Math.cos(form.angle)), s = Math.abs(Math.sin(form.angle));
-          const halfX = c * form.w / 2 + s * form.h / 2;
-          const halfY = s * form.w / 2 + c * form.h / 2;
-          left = Math.min(left, form.x - halfX); right = Math.max(right, form.x + halfX);
-          top = Math.min(top, form.y - halfY); bottom = Math.max(bottom, form.y + halfY);
-        }
-        return { left, top, right, bottom, width:right-left, height:bottom-top };
+      const frame = { left: 40, top: 40, right: 920, bottom: 670 };
+      let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+
+      for (const f of forms) {
+        const c = Math.abs(Math.cos(f.angle)), s = Math.abs(Math.sin(f.angle));
+        const hx = c * f.w / 2 + s * f.h / 2;
+        const hy = s * f.w / 2 + c * f.h / 2;
+        left = Math.min(left, f.x - hx);
+        right = Math.max(right, f.x + hx);
+        top = Math.min(top, f.y - hy);
+        bottom = Math.max(bottom, f.y + hy);
       }
-      let box = bounds();
-      const fit = Math.min(1, (frame.right - frame.left) / box.width, (frame.bottom - frame.top) / box.height);
+
+      const bw = Math.max(1, right - left);
+      const bh = Math.max(1, bottom - top);
+      const fit = Math.min(1, (frame.right - frame.left) / bw, (frame.bottom - frame.top) / bh);
+
       if (fit < 1) {
-        const cx = (box.left + box.right) / 2, cy = (box.top + box.bottom) / 2;
-        for (const form of forms) {
-          form.x = cx + (form.x - cx) * fit; form.y = cy + (form.y - cy) * fit;
-          form.w *= fit; form.h *= fit;
+        const cx = (left + right) / 2, cy = (top + bottom) / 2;
+        for (const f of forms) {
+          f.x = cx + (f.x - cx) * fit;
+          f.y = cy + (f.y - cy) * fit;
+          f.w *= fit;
+          f.h *= fit;
         }
-        box = bounds();
+        left = cx - (cx - left) * fit;
+        right = cx + (right - cx) * fit;
+        top = cy - (cy - top) * fit;
+        bottom = cy + (bottom - cy) * fit;
       }
-      const dx = (frame.left + frame.right - box.left - box.right) / 2;
-      const dy = (frame.top + frame.bottom - box.top - box.bottom) / 2;
-      for (const form of forms) { form.x += dx; form.y += dy; }
+
+      const dx = (frame.left + frame.right - left - right) / 2;
+      const dy = (frame.top + frame.bottom - top - bottom) / 2;
+      for (const f of forms) { f.x += dx; f.y += dy; }
       return forms;
     }
-    function insideRotatedRectangle(px, py, rect) {
+
+    function insideRotatedRect(px, py, rect) {
       const c = Math.cos(-rect.angle), s = Math.sin(-rect.angle);
-      const x = (px - rect.x) * c - (py - rect.y) * s, y = (px - rect.x) * s + (py - rect.y) * c;
+      const x = (px - rect.x) * c - (py - rect.y) * s;
+      const y = (px - rect.x) * s + (py - rect.y) * c;
       return Math.abs(x) <= rect.w / 2 && Math.abs(y) <= rect.h / 2;
     }
-    function draw(targetCanvas = canvas, suppliedValues = null, suppliedForms = null) {
-      const values = suppliedValues ? { ...suppliedValues } : read();
-      if (!suppliedValues) {
-        const depthControl = document.getElementById('outlineDepth');
-        depthControl.max = values.density;
-        if (values.outlineDepth > values.density) { values.outlineDepth = values.density; depthControl.value = values.density; }
-        updateLabels(values);
-      }
-      const width = 960, height = 710;
-      const ctx = targetCanvas.getContext('2d');
-      targetCanvas.width = width; targetCanvas.height = height; ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height);
-      const forms = suppliedForms || createForms(values), image = ctx.createImageData(width, height);
-      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-        let layers = 0; for (const form of forms) if (insideRotatedRectangle(x + .5, y + .5, form)) layers++;
-        if (!layers) continue;
-        const shade = Math.max(4, 26 - (layers - 1) * 7), index = (y * width + x) * 4;
-        image.data[index] = image.data[index + 1] = image.data[index + 2] = shade; image.data[index + 3] = 255;
-      }
-      ctx.putImageData(image, 0, 0);
-      function pointOnForm(form, localX, localY) {
-        const c = Math.cos(form.angle), s = Math.sin(form.angle);
-        return [form.x + localX * c - localY * s, form.y + localX * s + localY * c];
-      }
-      function cross(a, b) { return a[0] * b[1] - a[1] * b[0]; }
-      function intersectionParameter(a, b, c, d) {
-        const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], q = [c[0] - a[0], c[1] - a[1]];
-        const denominator = cross(r, s);
-        if (Math.abs(denominator) < 0.00001) return null;
-        const t = cross(q, s) / denominator, u = cross(q, r) / denominator;
-        return t > 0.00001 && t < .99999 && u > 0.00001 && u < .99999 ? t : null;
-      }
+
+    function pointOnForm(form, localX, localY) {
+      const c = Math.cos(form.angle), s = Math.sin(form.angle);
+      return [form.x + localX * c - localY * s, form.y + localX * s + localY * c];
+    }
+
+    function cross(a, b) { return a[0] * b[1] - a[1] * b[0]; }
+
+    function intersectionParam(a, b, c, d) {
+      const r = [b[0] - a[0], b[1] - a[1]];
+      const s = [d[0] - c[0], d[1] - c[1]];
+      const q = [c[0] - a[0], c[1] - a[1]];
+      const den = cross(r, s);
+      if (Math.abs(den) < 0.00001) return null;
+      const t = cross(q, s) / den;
+      const u = cross(q, r) / den;
+      return t > 0.00001 && t < 0.99999 && u > 0.00001 && u < 0.99999 ? t : null;
+    }
+
+    function computeGeometry(values, varSeed) {
+      const forms = createForms(values, varSeed);
+      const segments = [];
       const outlineDepth = values.outlineDepth;
+
       for (const form of forms) {
         const corners = [
-          pointOnForm(form, -form.w/2, -form.h/2), pointOnForm(form, form.w/2, -form.h/2),
-          pointOnForm(form, form.w/2, form.h/2), pointOnForm(form, -form.w/2, form.h/2)
+          pointOnForm(form, -form.w / 2, -form.h / 2),
+          pointOnForm(form, form.w / 2, -form.h / 2),
+          pointOnForm(form, form.w / 2, form.h / 2),
+          pointOnForm(form, -form.w / 2, form.h / 2)
         ];
+
         for (let edge = 0; edge < 4; edge++) {
           const a = corners[edge], b = corners[(edge + 1) % 4];
           const cuts = [0, 1];
+
           for (const other of forms) {
             if (other === form) continue;
             const otherCorners = [
-              pointOnForm(other, -other.w/2, -other.h/2), pointOnForm(other, other.w/2, -other.h/2),
-              pointOnForm(other, other.w/2, other.h/2), pointOnForm(other, -other.w/2, other.h/2)
+              pointOnForm(other, -other.w / 2, -other.h / 2),
+              pointOnForm(other, other.w / 2, -other.h / 2),
+              pointOnForm(other, other.w / 2, other.h / 2),
+              pointOnForm(other, -other.w / 2, other.h / 2)
             ];
-            for (let otherEdge = 0; otherEdge < 4; otherEdge++) {
-              const crossing = intersectionParameter(a, b, otherCorners[otherEdge], otherCorners[(otherEdge + 1) % 4]);
-              if (crossing !== null) cuts.push(crossing);
+            for (let oEdge = 0; oEdge < 4; oEdge++) {
+              const t = intersectionParam(a, b, otherCorners[oEdge], otherCorners[(oEdge + 1) % 4]);
+              if (t !== null) cuts.push(t);
             }
           }
+
           cuts.sort((x, y) => x - y);
-          const uniqueCuts = cuts.filter((cut, index) => !index || Math.abs(cut - cuts[index - 1]) > .00001);
-          for (let segment = 0; segment < uniqueCuts.length - 1; segment++) {
-            const t0 = uniqueCuts[segment], t1 = uniqueCuts[segment + 1], mid = (t0 + t1) / 2;
+          const uniq = cuts.filter((c, idx) => !idx || Math.abs(c - cuts[idx - 1]) > 0.00001);
+
+          for (let s = 0; s < uniq.length - 1; s++) {
+            const t0 = uniq[s], t1 = uniq[s + 1], mid = (t0 + t1) / 2;
             const x0 = a[0] + (b[0] - a[0]) * t0, y0 = a[1] + (b[1] - a[1]) * t0;
             const x1 = a[0] + (b[0] - a[0]) * t1, y1 = a[1] + (b[1] - a[1]) * t1;
             const mx = a[0] + (b[0] - a[0]) * mid, my = a[1] + (b[1] - a[1]) * mid;
+
             let layersAtEdge = 1;
-            for (const other of forms) if (other !== form && insideRotatedRectangle(mx, my, other)) layersAtEdge++;
-            const internal = layersAtEdge > 1;
+            for (const other of forms) {
+              if (other !== form && insideRotatedRect(mx, my, other)) layersAtEdge++;
+            }
+
             if (outlineDepth && layersAtEdge !== outlineDepth) continue;
-            ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
-            ctx.strokeStyle = internal ? 'rgba(142,142,142,.72)' : 'rgba(174,174,174,.88)';
-            ctx.lineWidth = internal ? 1.1 : 1.5;
-            ctx.stroke();
+
+            segments.push({
+              x0, y0, x1, y1,
+              layers: layersAtEdge,
+              internal: layersAtEdge > 1
+            });
           }
         }
       }
+      return { forms, segments };
     }
+
+    function drawScene(targetCtx, w, h, values, varSeed, isFastPreview) {
+      const theme = THEMES[values.theme] || THEMES.dark;
+      targetCtx.setTransform(1, 0, 0, 1, 0, 0);
+      targetCtx.fillStyle = theme.bg;
+      targetCtx.fillRect(0, 0, w, h);
+
+      const geo = computeGeometry(values, varSeed);
+      const forms = geo.forms;
+
+      // Raster pixel field
+      const step = isFastPreview ? 2 : 1;
+      const imgW = Math.ceil(w / step);
+      const imgH = Math.ceil(h / step);
+      const img = targetCtx.createImageData(imgW, imgH);
+      const isPrint = values.theme === 'print';
+      const isBlue = values.theme === 'blueprint';
+
+      for (let py = 0; py < imgH; py++) {
+        const y = py * step + 0.5;
+        for (let px = 0; px < imgW; px++) {
+          const x = px * step + 0.5;
+          let layers = 0;
+          for (const f of forms) {
+            if (insideRotatedRect(x, y, f)) layers++;
+          }
+          if (!layers) continue;
+
+          let r, g, b;
+          if (isPrint) {
+            const shade = Math.max(30, theme.fillBase - (layers - 1) * theme.fillStep);
+            r = g = b = shade;
+          } else if (isBlue) {
+            const level = Math.min(180, theme.fillBase + (layers - 1) * theme.fillStep);
+            r = Math.floor(level * 0.2);
+            g = Math.floor(level * 0.6);
+            b = level;
+          } else {
+            const shade = Math.max(4, theme.fillBase - (layers - 1) * theme.fillStep);
+            r = g = b = shade;
+          }
+
+          const idx = (py * imgW + px) * 4;
+          img.data[idx] = r;
+          img.data[idx + 1] = g;
+          img.data[idx + 2] = b;
+          img.data[idx + 3] = 255;
+        }
+      }
+
+      if (step === 1) {
+        targetCtx.putImageData(img, 0, 0);
+      } else {
+        // Fast scaled preview
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = imgW; offCanvas.height = imgH;
+        offCanvas.getContext('2d').putImageData(img, 0, 0);
+        targetCtx.imageSmoothingEnabled = false;
+        targetCtx.drawImage(offCanvas, 0, 0, w, h);
+      }
+
+      // Draw vector outline linework
+      for (const seg of geo.segments) {
+        targetCtx.beginPath();
+        targetCtx.moveTo(seg.x0, seg.y0);
+        targetCtx.lineTo(seg.x1, seg.y1);
+        targetCtx.strokeStyle = seg.internal ? theme.lineInternal : theme.lineExternal;
+        targetCtx.lineWidth = seg.internal ? theme.lineWidthInternal : theme.lineWidthExternal;
+        targetCtx.stroke();
+      }
+    }
+
+    function renderMain() {
+      const p = getParams();
+      const d = p.density;
+      const depthCtrl = document.getElementById('outlineDepth');
+      depthCtrl.max = String(d);
+      if (+depthCtrl.value > d) {
+        depthCtrl.value = String(d);
+        p.outlineDepth = d;
+      }
+
+      // Update HUD & Labels
+      document.getElementById('scaleVal').textContent = p.scale + '% (' + (p.scaleAxis === 'tall' ? 'Height' : 'Width') + ')';
+      document.getElementById('densityVal').textContent = p.density + ' forms';
+      document.getElementById('overlapVal').textContent = p.overlap + '%';
+      document.getElementById('rotateVal').textContent = '±' + p.rotate + '°';
+      document.getElementById('outlineVal').textContent = p.outlineDepth + (p.outlineDepth === 1 ? ' shape' : ' shapes');
+      document.getElementById('badgeForms').textContent = p.density + ' Rectangles';
+      document.getElementById('badgeSeed').textContent = 'Seed: ' + (variation * 7919).toString(16).toUpperCase().padStart(8, '0');
+
+      document.getElementById('summaryText').innerHTML =
+        '<strong>Mathematical Rule:</strong> ' + p.density + ' rectilinear forms scaled to ' + p.scale + '% on ' +
+        (p.scaleAxis === 'tall' ? 'vertical height' : 'horizontal width') + ' axis. Joining contact: ' + p.overlap +
+        '%. Deterministic angle deviation: ±' + p.rotate + '°. Highlighted boundary segments filtered at exact overlap depth ' +
+        p.outlineDepth + '.';
+
+      drawScene(ctx, canvas.width, canvas.height, p, variation, false);
+      applyCanvasTransform();
+    }
+
+    function applyCanvasTransform() {
+      canvas.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + zoom + ')';
+    }
+
+    // Viewport Pan and Zoom
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      isPanning = true;
+      startPanX = e.clientX - panX;
+      startPanY = e.clientY - panY;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      panX = e.clientX - startPanX;
+      panY = e.clientY - startPanY;
+      applyCanvasTransform();
+    });
+    window.addEventListener('mouseup', () => { isPanning = false; });
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      zoom = Math.max(0.2, Math.min(5, zoom * factor));
+      applyCanvasTransform();
+    }, { passive: false });
+
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      zoom = Math.min(5, zoom * 1.2);
+      applyCanvasTransform();
+    });
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      zoom = Math.max(0.2, zoom / 1.2);
+      applyCanvasTransform();
+    });
+    document.getElementById('zoomFit').addEventListener('click', resetView);
+    document.getElementById('btnResetView').addEventListener('click', resetView);
+
+    function resetView() {
+      zoom = 1; panX = 0; panY = 0;
+      applyCanvasTransform();
+    }
+
+    // Matrix View
     function renderMatrix() {
-      const matrix = document.getElementById('matrix');
-      matrix.innerHTML = '';
-      const base = read();
-      const xCriterion = document.getElementById('matrixX').value;
-      const yCriterion = document.getElementById('matrixY').value;
-      const axis = {
-        scale: { name:'Scale', values:[50, 93, 135, 178, 220], unit:'%' },
-        rotate: { name:'Rotation', values:[0, 11, 23, 34, 45], unit:'°' },
-        density: { name:'Density', values:[2, 5, 9, 12, 16], unit:' forms' },
-        overlap: { name:'Overlap', values:[5, 26, 48, 69, 90], unit:'%' },
-        outlineDepth: { name:'Outline depth', values:[1, 2, 3, 4, 5], unit:' shapes' }
-      };
-      const xAxis = axis[xCriterion], yAxis = axis[yCriterion];
-      document.getElementById('matrixTitle').textContent =
-        'Controlled comparison: ' + xAxis.name + ' increases left to right; ' + yAxis.name + ' increases top to bottom. All remaining criteria are held constant.';
-      const blank = document.createElement('div'); blank.className = 'matrix-label'; matrix.appendChild(blank);
-      xAxis.values.forEach(value => {
-        const label = document.createElement('div'); label.className = 'matrix-label top';
-        label.textContent = xAxis.name.toUpperCase() + ' ' + value + xAxis.unit; matrix.appendChild(label);
-      });
-      yAxis.values.forEach(yValue => {
-        const label = document.createElement('div'); label.className = 'matrix-label';
-        label.textContent = yAxis.name.toUpperCase() + ' ' + yValue + yAxis.unit; matrix.appendChild(label);
-        xAxis.values.forEach(xValue => {
-          const cell = document.createElement('div'); cell.className = 'matrix-cell';
-          const cellCanvas = document.createElement('canvas'); cell.appendChild(cellCanvas); matrix.appendChild(cell);
-          const cellValues = { ...base, [xCriterion]:xValue, [yCriterion]:yValue };
-          cellValues.outlineDepth = Math.min(cellValues.outlineDepth, cellValues.density);
-          draw(cellCanvas, cellValues);
-        });
-      });
+      const grid = document.getElementById('matrixGrid');
+      grid.innerHTML = '';
+      const base = getParams();
+      const xKey = document.getElementById('matrixX').value;
+      const yKey = document.getElementById('matrixY').value;
+      const xAxis = CRITERIA[xKey], yAxis = CRITERIA[yKey];
+
+      document.getElementById('matrixDesc').textContent =
+        'Horizontal: ' + xAxis.name + ' (' + xAxis.values.map(v => v + xAxis.unit).join(', ') +
+        ') · Vertical: ' + yAxis.name + ' (' + yAxis.values.map(v => v + yAxis.unit).join(', ') +
+        ') · Click any variation to load it.';
+
+      const corner = document.createElement('div');
+      corner.className = 'm-corner';
+      grid.appendChild(corner);
+
+      for (let c = 0; c < 5; c++) {
+        const h = document.createElement('div');
+        h.className = 'm-col-header';
+        h.textContent = xAxis.name.toUpperCase() + ' ' + xAxis.values[c] + xAxis.unit;
+        grid.appendChild(h);
+      }
+
+      for (let r = 0; r < 5; r++) {
+        const rh = document.createElement('div');
+        rh.className = 'm-row-header';
+        rh.textContent = yAxis.name.toUpperCase() + ' ' + yAxis.values[r] + yAxis.unit;
+        grid.appendChild(rh);
+
+        for (let c = 0; c < 5; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'm-cell';
+          const cv = document.createElement('canvas');
+          cv.width = 480; cv.height = 355;
+          cell.appendChild(cv);
+          grid.appendChild(cell);
+
+          const cellP = Object.assign({}, base, { [xKey]: xAxis.values[c], [yKey]: yAxis.values[r] });
+          cellP.outlineDepth = Math.min(cellP.outlineDepth, cellP.density);
+          const cellCtx = cv.getContext('2d');
+          drawScene(cellCtx, 480, 355, cellP, variation, true);
+
+          cell.addEventListener('click', () => {
+            applyValues(cellP);
+            document.getElementById('matrixView').hidden = true;
+          });
+        }
+      }
     }
+
     function toggleMatrix() {
-      const single = document.getElementById('singleView'), matrix = document.getElementById('matrixView'), button = document.getElementById('matrixButton');
-      const opening = matrix.hidden;
-      matrix.hidden = !opening; single.hidden = opening;
-      button.textContent = opening ? 'Return to single variation' : 'Show 5 × 5 scale / rotation matrix';
-      if (opening) renderMatrix();
+      const mv = document.getElementById('matrixView');
+      mv.hidden = !mv.hidden;
+      if (!mv.hidden) renderMatrix();
     }
-    controls.forEach(control => control.addEventListener('input', () => {
-      selectedSavedId = null; draw(); renderSavedVariations();
-      if (!document.getElementById('matrixView').hidden) renderMatrix();
-    }));
-    document.getElementById('regenerate').addEventListener('click', () => {
-      variation++; selectedSavedId = null; draw(); renderSavedVariations();
+    document.getElementById('btnMatrix').addEventListener('click', toggleMatrix);
+    document.getElementById('btnCloseMatrix').addEventListener('click', () => {
+      document.getElementById('matrixView').hidden = true;
+    });
+
+    ['matrixX', 'matrixY'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        const other = document.getElementById(id === 'matrixX' ? 'matrixY' : 'matrixX');
+        const curr = document.getElementById(id);
+        if (curr.value === other.value) other.value = curr.value === 'scale' ? 'rotate' : 'scale';
+        if (!document.getElementById('matrixView').hidden) renderMatrix();
+      });
+    });
+
+    // Preset & Storage
+    function getSaved() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+    }
+    function saveVariation() {
+      const list = getSaved();
+      const p = getParams();
+      const item = { id: Date.now().toString(36), variation, settings: p, timestamp: new Date().toLocaleTimeString() };
+      list.unshift(item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      renderSavedList();
+    }
+    function renderSavedList() {
+      const list = getSaved();
+      const ul = document.getElementById('savedList');
+      ul.innerHTML = '';
+      if (!list.length) {
+        ul.innerHTML = '<li style="color:var(--text-dim);font-size:11px;padding:4px;">No saved variations yet.</li>';
+        return;
+      }
+      list.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'saved-item' + (item.id === selectedSavedId ? ' active' : '');
+        li.innerHTML = '<span>Variation ' + item.id + ' · ' + item.settings.density + 'F (' + item.settings.scale + '%)</span><button type="button" class="del-btn" title="Delete">✕</button>';
+        li.querySelector('.del-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const next = getSaved().filter(x => x.id !== item.id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+          renderSavedList();
+        });
+        li.addEventListener('click', () => {
+          applyValues(item.settings);
+          variation = item.variation;
+          selectedSavedId = item.id;
+          renderSavedList();
+        });
+        ul.appendChild(li);
+      });
+    }
+
+    function applyValues(p) {
+      document.getElementById('scale').value = p.scale;
+      document.getElementById('density').value = p.density;
+      document.getElementById('overlap').value = p.overlap;
+      document.getElementById('rotate').value = p.rotate;
+      document.getElementById('outlineDepth').value = p.outlineDepth;
+      document.getElementById('themeSelector').value = p.theme || 'dark';
+      scaleAxis = p.scaleAxis || 'tall';
+      document.getElementById('axisTall').classList.toggle('active', scaleAxis === 'tall');
+      document.getElementById('axisWide').classList.toggle('active', scaleAxis === 'wide');
+      renderMain();
+    }
+
+    // Export SVG
+    function exportSVG() {
+      const p = getParams();
+      const geo = computeGeometry(p, variation);
+      const theme = THEMES[p.theme] || THEMES.dark;
+      const w = canvas.width, h = canvas.height;
+
+      let svg = '<?xml version="1.0" standalone="no"?>\n';
+      svg += '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">\n';
+      svg += '  <rect width="100%" height="100%" fill="' + theme.bg + '" />\n';
+
+      // Layered forms
+      svg += '  <g id="forms" opacity="0.8">\n';
+      for (const f of geo.forms) {
+        const deg = f.angle * 180 / Math.PI;
+        svg += '    <rect x="' + (-f.w / 2) + '" y="' + (-f.h / 2) + '" width="' + f.w + '" height="' + f.h +
+               '" fill="rgb(26,26,26)" fill-opacity="0.2" stroke="none" transform="translate(' + f.x + ',' + f.y + ') rotate(' + deg + ')" />\n';
+      }
+      svg += '  </g>\n';
+
+      // Outline segments
+      svg += '  <g id="outline_linework" stroke-linecap="round">\n';
+      for (const seg of geo.segments) {
+        const color = seg.internal ? theme.lineInternal : theme.lineExternal;
+        const width = seg.internal ? theme.lineWidthInternal : theme.lineWidthExternal;
+        svg += '    <line x1="' + seg.x0.toFixed(2) + '" y1="' + seg.y0.toFixed(2) +
+               '" x2="' + seg.x1.toFixed(2) + '" y2="' + seg.y1.toFixed(2) +
+               '" stroke="' + color + '" stroke-width="' + width + '" />\n';
+      }
+      svg += '  </g>\n</svg>';
+
+      downloadFile('section_space_' + variation + '.svg', 'image/svg+xml', svg);
+    }
+
+    // Export DXF for Rhino & CAD
+    function exportDXF() {
+      const p = getParams();
+      const geo = computeGeometry(p, variation);
+
+      let dxf = "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nENDSEC\n0\nSECTION\n2\nBLOCKS\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+
+      for (const seg of geo.segments) {
+        dxf += "0\nLINE\n8\nSECTION_OUTLINE\n";
+        dxf += "10\n" + seg.x0.toFixed(3) + "\n20\n" + (710 - seg.y0).toFixed(3) + "\n30\n0.0\n";
+        dxf += "11\n" + seg.x1.toFixed(3) + "\n21\n" + (710 - seg.y1).toFixed(3) + "\n31\n0.0\n";
+      }
+
+      dxf += "0\nENDSEC\n0\nEOF\n";
+      downloadFile('section_space_' + variation + '.dxf', 'application/dxf', dxf);
+    }
+
+    // Export High-Res PNG
+    function exportPNG() {
+      const link = document.createElement('a');
+      link.download = 'section_space_' + variation + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function downloadFile(filename, type, text) {
+      const blob = new Blob([text], { type: type });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    // Event Bindings
+    document.getElementById('btnRegenerate').addEventListener('click', () => {
+      variation++;
+      renderMain();
       if (!document.getElementById('matrixView').hidden) renderMatrix();
     });
-    document.getElementById('matrixButton').addEventListener('click', toggleMatrix);
-    ['matrixX','matrixY'].forEach(id => document.getElementById(id).addEventListener('input', () => {
-      const other = document.getElementById(id === 'matrixX' ? 'matrixY' : 'matrixX');
-      const current = document.getElementById(id);
-      if (current.value === other.value) other.value = current.value === 'scale' ? 'rotate' : 'scale';
+
+    document.getElementById('btnSave').addEventListener('click', saveVariation);
+    document.getElementById('btnExportSVG').addEventListener('click', exportSVG);
+    document.getElementById('btnExportDXF').addEventListener('click', exportDXF);
+    document.getElementById('btnExportPNG').addEventListener('click', exportPNG);
+
+    document.getElementById('axisTall').addEventListener('click', () => {
+      scaleAxis = 'tall';
+      document.getElementById('axisTall').classList.add('active');
+      document.getElementById('axisWide').classList.remove('active');
+      renderMain();
+    });
+    document.getElementById('axisWide').addEventListener('click', () => {
+      scaleAxis = 'wide';
+      document.getElementById('axisWide').classList.add('active');
+      document.getElementById('axisTall').classList.remove('active');
+      renderMain();
+    });
+
+    ['scale', 'density', 'overlap', 'rotate', 'outlineDepth'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        renderMain();
+        if (!document.getElementById('matrixView').hidden) renderMatrix();
+      });
+    });
+
+    document.getElementById('themeSelector').addEventListener('change', () => {
+      renderMain();
       if (!document.getElementById('matrixView').hidden) renderMatrix();
-    }));
-    document.getElementById('saveVariation').addEventListener('click', saveCurrentVariation);
-    draw(); renderSavedVariations();
+    });
+
+    renderSavedList();
+    renderMain();
+  })();
   </script>
 </body>
 </html>
